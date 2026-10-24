@@ -6,7 +6,6 @@ export const PERFIS = {
   nome: "Vitor Cavalcante",
   github: { url: "https://github.com/vitorcgo", usuario: "vitorcgo" },
   linkedin: { url: "https://www.linkedin.com/in/vitorcgms", usuario: "vitorcgms" },
-  repositorio: "https://github.com/vitorcgo/LabDots",
 };
 
 export const TAMANHOS_PNG = [128, 256, 512, 1024];

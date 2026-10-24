@@ -239,7 +239,7 @@ const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b
               aria-label={a.nome}
               data-cor={a.hex}
               class="lamina absolute bottom-0 -left-4 h-[150px] w-8 rounded-[10px] ring-1 ring-black/10 shadow-[0_6px_14px_-8px_rgb(0_0_0/.5)] aria-checked:ring-[3px] aria-checked:ring-superficie"
-              style={`background:${a.hex};--i:${i};--atraso:${i * 16}ms`}
+              style={`background:${a.hex}`}
             >
               <span class="absolute bottom-2.5 left-1/2 size-2.5 -translate-x-1/2 rounded-full bg-white/80 ring-1 ring-black/10" />
             </button>
@@ -247,7 +247,6 @@ const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b
         }
         <label
           class:list={["lamina absolute bottom-0 -left-4 h-[150px] w-8 cursor-pointer rounded-[10px] ring-1 ring-black/10 focus-within:outline-[2.5px] focus-within:outline-offset-3 focus-within:outline-tinta", arcoIris]}
-          style={`--i:${AMOSTRAS.length};--atraso:${AMOSTRAS.length * 16}ms`}
           title="Outra cor"
         >
           <input id="cor-livre" type="color" class="absolute inset-0 size-full cursor-pointer opacity-0" aria-label="Escolher outra cor" />
