@@ -491,7 +491,8 @@ export function partesDoDot(dot: Dot, o: Opcoes = {}) {
     `<g class="${p}-corpo"${corpoPose}><g class="${p}-jeito">${pele}${o.semRosto ? "" : rosto}</g></g>` +
     efeitos +
     `</svg>`;
-  return { svg, css: css.join("") };
+  // Parado é parado: os blocos de cada estado montam CSS mesmo sem animação, e ele não pode sair junto.
+  return { svg, css: animado ? css.join("") : "" };
 }
 
 /** Troca a cor de um dot vivo sem refazer o SVG: cada [data-tom] guarda a receita do seu tom. */

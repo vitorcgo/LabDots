@@ -202,6 +202,27 @@ test.describe("interação", () => {
     expect(gif.suggestedFilename()).toBe("dot-fantasma-f08a24-ocioso.gif");
   });
 
+  test("SVG parado sai sem animação e miniaturas não animam por dentro", async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await abrir(page);
+    await page.locator("#abrir-exportar").click();
+    await page.locator('#menu-exportar [data-estilo="parado"]').click();
+    await page.locator("#menu-exportar [data-acao=copiar-svg]").click();
+    await expect(page.locator("#avisos")).toContainText("SVG parado copiado");
+    const svg = await page.evaluate(() => navigator.clipboard.readText());
+    expect(svg).not.toContain("<style>");
+    expect(svg).not.toContain("@keyframes");
+    // Só o dot do meio e a aba escolhida podem animar por dentro do SVG; o resto anima por fora ou fica parado.
+    const dentroDeSvg = await page.evaluate(() =>
+      // Só animações de CSS: a piscada sorteada é curta e de propósito, e não entra na conta.
+      document.getAnimations().filter((a) => {
+        const alvo = (a.effect as KeyframeEffect | null)?.target;
+        return a instanceof CSSAnimation && alvo instanceof SVGElement && !alvo.closest("#dot-vivo, #estados");
+      }).length,
+    );
+    expect(dentroDeSvg).toBe(0);
+  });
+
   test("copiar PNG no tamanho escolhido", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await abrir(page);
