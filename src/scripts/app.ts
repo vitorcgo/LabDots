@@ -2,7 +2,7 @@ import { luminancia } from "../lib/cor";
 import { ESTADOS, estadoPorId, type EstadoId } from "../lib/estados";
 import { EXPRESSOES } from "../lib/expressoes";
 import { FORMATOS, formatoPorId } from "../lib/formatos";
-import { LIMITE_OLHAR, gerarDot, olhosDoDot, recolorir, tintaDosOlhos, type Dot } from "../lib/gerador";
+import { LIMITE_OLHAR, gerarDot, olhosDoDot, partesDoDot, recolorir, tintaDosOlhos, type Dot } from "../lib/gerador";
 import { AMOSTRAS, nomeDaCor } from "../lib/paleta";
 import { avisar } from "./avisos";
 import {
@@ -253,13 +253,48 @@ function grupoRadio(grupo: HTMLElement, aoEscolher: (el: HTMLElement) => void) {
 const anel = $("#anel");
 const itensAnel = $$<HTMLButtonElement>("[data-expressao]", anel);
 
+// CSS dentro de um SVG embutido vale pra página toda, e cada <style> novo faz o navegador recalcular
+// o estilo de tudo. Por isso os dots que dividem um prefixo ganham um <style> só, trocado só quando muda.
+const estilos = new Map<string, HTMLStyleElement>();
+function estiloCompartilhado(nome: string, css: string) {
+  let el = estilos.get(nome);
+  if (!el) {
+    el = document.createElement("style");
+    document.head.append(el);
+    estilos.set(nome, el);
+  }
+  if (el.textContent !== css) el.textContent = css;
+}
+
+let tintaAnel = "";
 function desenharAnel() {
+  const op = {
+    prefixo: "anel",
+    vivo: true,
+    estado: "ocioso",
+    estados: ["ocioso"],
+    sombra: false,
+    recortado: true,
+    faseVariavel: true,
+    velocidade: loja.ajustes.velocidade,
+  } as const;
+  let css = "";
   itensAnel.forEach((b, i) => {
-    b.innerHTML = gerarDot(
-      { ...loja.dot, expressao: b.dataset.expressao! },
-      { prefixo: `a${i}`, vivo: true, estado: "ocioso", estados: ["ocioso"], sombra: false, recortado: true, fase: i * 0.83, velocidade: loja.ajustes.velocidade },
-    );
+    const partes = partesDoDot({ ...loja.dot, expressao: b.dataset.expressao! }, op);
+    css = partes.css;
+    b.innerHTML = partes.svg;
+    // Cada boneco num ponto do ciclo, pra não piscarem todos juntos.
+    b.style.setProperty("--fase", `${(i * 0.83).toFixed(2)}s`);
   });
+  estiloCompartilhado("anel", css);
+  tintaAnel = tintaDe(loja.dot);
+}
+
+function recolorirMiniaturas(cor: string) {
+  for (const b of [...itensAnel, ...itensForma]) {
+    const svg = b.querySelector<SVGSVGElement>("svg");
+    if (svg) recolorir(svg, cor);
+  }
 }
 
 function entrarAnel() {
@@ -324,7 +359,7 @@ const nomeFormato = $("#nome-formato");
 
 function desenharCarrossel() {
   itensForma.forEach((b) => {
-    b.innerHTML = gerarDot({ ...loja.dot, formato: b.dataset.formato! }, { animado: false, sombra: false, semRosto: true, recortado: true });
+    b.innerHTML = gerarDot({ ...loja.dot, formato: b.dataset.formato! }, { animado: false, vivo: true, sombra: false, semRosto: true, recortado: true });
   });
 }
 
@@ -404,15 +439,17 @@ function desenharEstados() {
     const id = b.dataset.estado as EstadoId;
     const ativo = id === loja.estado;
     // Só a aba escolhida anima; as outras ficam paradas mostrando a pose do estado.
-    $("[data-mini]", b).innerHTML = gerarDot(loja.dot, {
+    const partes = partesDoDot(loja.dot, {
       ...opcoesBase(),
       sombra: false,
       estado: id,
       estados: [id],
       animado: ativo,
       recortado: true,
-      prefixo: `e${id}`,
+      prefixo: "aba",
     });
+    if (ativo) estiloCompartilhado("aba", partes.css);
+    $("[data-mini]", b).innerHTML = partes.svg;
   });
   marcar(abasEstado, (b) => b.dataset.estado === loja.estado);
   $$("[data-titulo-estado]").forEach((el) => (el.textContent = estadoPorId(loja.estado).nome));
@@ -438,10 +475,7 @@ const leque = iniciarLeque($("#leque"), {
     }
     const c = cor ?? loja.dot.cor;
     pintarVivo(c);
-    itensAnel.forEach((b) => {
-      const svg = b.querySelector<SVGSVGElement>("svg");
-      if (svg) recolorir(svg, c);
-    });
+    recolorirMiniaturas(c);
   },
   aoEscolher(cor, alvo) {
     if (alvo === "olhos") {
@@ -668,7 +702,7 @@ $("#compartilhar").addEventListener("click", async () => {
 
 // ---------- reações às mudanças ----------
 
-function desenharTudo() {
+function atualizarControles() {
   document.body.style.setProperty("--cor-dot", loja.dot.cor);
   document.body.style.setProperty("--tinta-dot", luminancia(loja.dot.cor) > 0.5 ? "#1e1b18" : "#ffffff");
   document.body.style.setProperty("--cor-olho", tintaDosOlhos(loja.dot.cor, loja.dot.corOlho).T);
@@ -680,11 +714,28 @@ function desenharTudo() {
   vaoOlho.value = String(loja.dot.vaoOlho ?? 0);
   larguraOlho.value = String(loja.dot.larguraOlho ?? 1);
   marcar(itensAnel, (b) => b.dataset.expressao === loja.dot.expressao);
+}
+
+function desenharTudo() {
+  atualizarControles();
   desenharAnel();
-  desenharCarrossel();
   posicionarCarrossel();
   desenharEstados();
   desenharPrevia();
+}
+
+// O dot do meio responde no clique; o resto redesenha no quadro seguinte, pra não segurar a animação.
+// Várias mudanças seguidas viram um redesenho só.
+let redesenhoMarcado = false;
+function redesenharDepois() {
+  if (redesenhoMarcado) return;
+  redesenhoMarcado = true;
+  requestAnimationFrame(() =>
+    setTimeout(() => {
+      redesenhoMarcado = false;
+      desenharTudo();
+    }),
+  );
 }
 
 loja.ouvir((motivo) => {
@@ -698,22 +749,36 @@ loja.ouvir((motivo) => {
   if (motivo === "expressao") {
     trocarOlhos(loja.dot);
     marcar(itensAnel, (b) => b.dataset.expressao === loja.dot.expressao);
-    desenharEstados();
-    desenharPrevia();
+    // Abas e prévia do time não estão no foco do clique: ficam pro quadro seguinte.
+    requestAnimationFrame(() => {
+      desenharEstados();
+      desenharPrevia();
+    });
     return;
   }
   if (motivo === "cor") {
     pintarVivo(loja.dot.cor);
-    desenharTudo();
+    atualizarControles();
+    // Trocar de cor só repinta; refaz o anel apenas se os olhos mudarem de tinta (corpo muito escuro).
+    if (tintaDe(loja.dot) !== tintaAnel) desenharAnel();
+    else recolorirMiniaturas(loja.dot.cor);
+    desenharEstados();
+    desenharPrevia();
     return;
   }
   if (motivo === "olhos") {
     desenharVivo();
-    return desenharTudo();
+    atualizarControles();
+    return redesenharDepois();
   }
   // No meio do sorteio só o dot do meio muda; o resto redesenha quando o dado para.
   if (motivo === "rolando") return desenharVivo();
-  if (motivo === "formato") trocarFormatoComEfeito();
+  if (motivo === "formato") {
+    trocarFormatoComEfeito();
+    posicionarCarrossel();
+    atualizarControles();
+    return redesenharDepois();
+  }
   if (motivo === "time") return desenharTime();
   if (motivo.startsWith("ajuste:")) {
     aplicarAjustes();
@@ -726,6 +791,7 @@ loja.ouvir((motivo) => {
 });
 
 desenharVivo();
+desenharCarrossel();
 desenharTudo();
 desenharTime();
 aplicarAjustes();

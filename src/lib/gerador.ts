@@ -48,6 +48,11 @@ export interface Opcoes {
   fase?: number;
   /** Aproxima o enquadramento no corpo (miniaturas). */
   recortado?: boolean;
+  /**
+   * Lê o adiantamento da variável CSS --fase em vez de gravar no CSS. Assim vários dots com o mesmo
+   * prefixo dividem um CSS só, cada um no seu tempo.
+   */
+  faseVariavel?: boolean;
 }
 
 /** Tom derivado da cor base: "b" (a própria), "c0.5" (clareia), "e0.3" (escurece), "r0.4" (puxa pro rosado). */
@@ -95,7 +100,17 @@ export function olhosDoDot(dot: Dot) {
   };
 }
 
+/** SVG completo, com o CSS dentro. É o que vai pros arquivos exportados. */
 export function gerarDot(dot: Dot, o: Opcoes = {}) {
+  const { svg, css } = partesDoDot(dot, o);
+  return css ? svg.replace(">", `><style>${css}</style>`) : svg;
+}
+
+/**
+ * SVG e CSS separados. Na página, CSS dentro de um SVG vale pro documento inteiro; quando vários dots
+ * dividem o prefixo, o CSS vai uma vez só num <style> da página.
+ */
+export function partesDoDot(dot: Dot, o: Opcoes = {}) {
   const f = formatoPorId(dot.formato);
   const p = o.prefixo ?? "dot";
   const animado = o.animado !== false;
@@ -119,7 +134,8 @@ export function gerarDot(dot: Dot, o: Opcoes = {}) {
     let at = atraso / vel - (o.fase ?? 0);
     if (o.congelarEm !== undefined) at -= o.congelarEm;
     const pausa = o.congelarEm !== undefined ? ";animation-play-state:paused" : "";
-    return `animation:${p}-${nome} ${d}s ${curva} ${n2(at)}s infinite both${pausa}`;
+    const inicio = o.faseVariavel ? `calc(${n2(at)}s - var(--fase,0s))` : `${n2(at)}s`;
+    return `animation:${p}-${nome} ${d}s ${curva} ${inicio} infinite both${pausa}`;
   };
   const em = (est: EstadoId, parte: string) => `.${p}[data-estado=${est}] .${p}-${parte}`;
   const kf = (nome: string, corpo: string) => `@keyframes ${p}-${nome}{${corpo}}`;
@@ -466,18 +482,16 @@ export function gerarDot(dot: Dot, o: Opcoes = {}) {
   const corpoPose = parado && pose.corpo ? ` transform="${pose.corpo}"` : "";
   const tam = o.tamanho ? ` width="${o.tamanho}" height="${o.tamanho}"` : "";
   const rotulo = o.rotulo ?? `Dot ${f.nome.toLowerCase()}, ${estadoPorId(estado).nome.toLowerCase()}`;
-  const estilo = css.length ? `<style>${css.join("")}</style>` : "";
   const fundo = o.fundo ? `<rect width="256" height="256" fill="${o.fundo}"/>` : "";
 
-  return (
+  const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${o.recortado ? `${meioX - 106} ${meioY - 104} 212 212` : "0 0 256 256"}"${tam} class="${p}" data-estado="${estado}" role="img" aria-label="${rotulo}">` +
-    estilo +
     fundo +
     sombra +
     `<g class="${p}-corpo"${corpoPose}><g class="${p}-jeito">${pele}${o.semRosto ? "" : rosto}</g></g>` +
     efeitos +
-    `</svg>`
-  );
+    `</svg>`;
+  return { svg, css: css.join("") };
 }
 
 /** Troca a cor de um dot vivo sem refazer o SVG: cada [data-tom] guarda a receita do seu tom. */
