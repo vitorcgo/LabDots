@@ -1,0 +1,31 @@
+{
+  "name": "labdots",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "author": "Vitor Cavalcante Gomes (https://github.com/vitorcgo)",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "playwright test",
+    "imagens": "node scripts/imagens.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.4.2",
+    "fflate": "^0.8.3",
+    "gifenc": "^1.0.3",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  },
+  "description": "Laboratório de mascotes animados em SVG: formato, expressão, cor e estado, com exportação em SVG, PNG e GIF.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vitorcgo/LabDots"
+  }
+}
