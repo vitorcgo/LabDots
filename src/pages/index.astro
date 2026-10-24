@@ -13,6 +13,8 @@ const d = DOT_INICIAL;
 const vivo = gerarDot(d, { prefixo: "vivo", vivo: true, rotulo: "Seu dot" });
 const parado = { animado: false, sombra: false } as const;
 const icone = gerarDot(d, { ...parado, recortado: true });
+const endereco = Astro.site ?? Astro.url;
+const capa = new URL("/capa.png", endereco).href;
 const descricao = "Laboratório de dots: monte um mascote em SVG animado, escolha formato, expressão, cor e estado, e exporte em SVG, PNG ou GIF.";
 // Mesma conta do script (posicionarCarrossel), pra página já sair certa antes dele rodar.
 const atual = FORMATOS.findIndex((f) => f.id === d.formato);
@@ -36,7 +38,14 @@ const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b
     <meta name="description" content={descricao} />
     <meta property="og:title" content="LabDots" />
     <meta property="og:description" content={descricao} />
-    <meta property="og:image" content="/capa.png" />
+    <link rel="canonical" href={new URL("/", endereco).href} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={new URL("/", endereco).href} />
+    <meta property="og:image" content={capa} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta name="twitter:image" content={capa} />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href={`data:image/svg+xml,${encodeURIComponent(icone)}`} />
     <script is:inline>
