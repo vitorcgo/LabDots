@@ -85,7 +85,7 @@ A animação é toda em CSS dentro do SVG. Embutido no HTML ele troca de estado 
 
 ## Rodar localmente
 
-Precisa de Node 22.23 ou mais novo e [pnpm](https://pnpm.io).
+Precisa de Node 24 e [pnpm](https://pnpm.io).
 
 ```bash
 pnpm install
