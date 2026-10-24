@@ -1,11 +1,22 @@
 // Fundo de laboratório: anéis concêntricos bem leves em volta do dot, como as marcas de uma placa de ensaio.
-// Fica parado; só redesenha quando a janela muda de tamanho ou a página rola.
+// Fica parado; só redesenha quando a janela muda de tamanho, a página rola ou o tema troca.
 export function iniciarFundo(canvas: HTMLCanvasElement, centro: HTMLElement) {
   const ctx = canvas.getContext("2d")!;
   const passo = 46;
   let largura = 0;
   let altura = 0;
   let pedido = 0;
+  // Cor e centro ficam guardados: ler layout e estilo a cada quadro de rolagem travava o celular.
+  let cor = "";
+  let centroX = 0;
+  let centroYNaPagina = 0;
+
+  function lerPagina() {
+    cor = getComputedStyle(document.documentElement).getPropertyValue("--pontinho").trim() || "#cbc2b4";
+    const r = centro.getBoundingClientRect();
+    centroX = r.left + r.width / 2;
+    centroYNaPagina = r.top + r.height / 2 + scrollY;
+  }
 
   function medir() {
     const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -14,16 +25,14 @@ export function iniciarFundo(canvas: HTMLCanvasElement, centro: HTMLElement) {
     canvas.width = largura * dpr;
     canvas.height = altura * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    lerPagina();
     pedir();
   }
 
   function desenhar() {
     pedido = 0;
-    const estilo = getComputedStyle(document.documentElement);
-    const cor = estilo.getPropertyValue("--pontinho").trim() || "#cbc2b4";
-    const r = centro.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
+    const cx = centroX;
+    const cy = centroYNaPagina - scrollY;
     const ate = Math.hypot(Math.max(cx, largura - cx), Math.max(cy, altura - cy));
     ctx.clearRect(0, 0, largura, altura);
     ctx.strokeStyle = cor;
@@ -43,5 +52,10 @@ export function iniciarFundo(canvas: HTMLCanvasElement, centro: HTMLElement) {
   addEventListener("resize", medir);
   addEventListener("scroll", pedir, { passive: true });
   medir();
-  return { redesenhar: pedir };
+  return {
+    redesenhar() {
+      lerPagina();
+      pedir();
+    },
+  };
 }

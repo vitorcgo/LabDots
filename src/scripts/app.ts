@@ -32,6 +32,19 @@ const MOLA = "cubic-bezier(.34,1.56,.64,1)";
 loja.iniciar();
 const fundo = iniciarFundo($<HTMLCanvasElement>("#fundo"), $("#dot-vivo"));
 
+// CSS dentro de um SVG embutido vale pra página toda, e cada <style> novo faz o navegador recalcular
+// o estilo de tudo. Por isso os dots que dividem um prefixo ganham um <style> só, trocado só quando muda.
+const estilos = new Map<string, HTMLStyleElement>();
+function estiloCompartilhado(nome: string, css: string) {
+  let el = estilos.get(nome);
+  if (!el) {
+    el = document.createElement("style");
+    document.head.append(el);
+    estilos.set(nome, el);
+  }
+  if (el.textContent !== css) el.textContent = css;
+}
+
 // ---------- dot vivo ----------
 
 const vivo = $<HTMLButtonElement>("#dot-vivo");
@@ -48,7 +61,10 @@ const tintaDe = (d: Dot) => d.corOlho ?? (luminancia(d.cor) < 0.2 ? "claro" : "e
 
 function desenharVivo(extra: Partial<Dot> = {}) {
   const dot = { ...loja.dot, ...extra };
-  vivo.innerHTML = gerarDot(dot, { ...opcoesBase(), prefixo: "vivo", vivo: true, estado: loja.estado, rotulo: "Seu dot" });
+  // O CSS do dot vivo é igual em todo formato; só é trocado quando velocidade, sombra ou bochechas mudam.
+  const { svg, css } = partesDoDot(dot, { ...opcoesBase(), prefixo: "vivo", vivo: true, estado: loja.estado, rotulo: "Seu dot" });
+  estiloCompartilhado("vivo", css);
+  vivo.innerHTML = svg;
   tintaOlhos = tintaDe(dot);
 }
 
@@ -260,18 +276,6 @@ function grupoRadio(grupo: HTMLElement, aoEscolher: (el: HTMLElement) => void) {
 const anel = $("#anel");
 const itensAnel = $$<HTMLButtonElement>("[data-expressao]", anel);
 
-// CSS dentro de um SVG embutido vale pra página toda, e cada <style> novo faz o navegador recalcular
-// o estilo de tudo. Por isso os dots que dividem um prefixo ganham um <style> só, trocado só quando muda.
-const estilos = new Map<string, HTMLStyleElement>();
-function estiloCompartilhado(nome: string, css: string) {
-  let el = estilos.get(nome);
-  if (!el) {
-    el = document.createElement("style");
-    document.head.append(el);
-    estilos.set(nome, el);
-  }
-  if (el.textContent !== css) el.textContent = css;
-}
 
 let tintaAnel = "";
 let loteAnel = 0;
@@ -400,7 +404,6 @@ function posicionarCarrossel() {
     b.dataset.off = String(off);
     b.style.transform = `translateX(${off * passo}px) translateY(${-longe * longe * 3}px) rotate(${off * 6}deg) scale(${1 - longe * 0.13})`;
     b.style.opacity = longe > 3 ? "0" : String(1 - longe * 0.24);
-    b.style.filter = longe ? `blur(${(longe * 0.7).toFixed(1)}px)` : "";
     b.style.zIndex = String(10 - longe);
     b.style.pointerEvents = longe > 3 ? "none" : "";
     b.tabIndex = off === 0 ? 0 : -1;

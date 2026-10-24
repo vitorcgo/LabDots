@@ -146,8 +146,8 @@ export function partesDoDot(dot: Dot, o: Opcoes = {}) {
   const pose: { corpo?: string; olhar?: string } = {};
   const parado = !animado;
 
-  const ehFlor = f.jeito === "balanca";
-  const alvoJeito = ehFlor ? "pele" : "jeito";
+  // Balançar gira em volta do centro do corpo; os outros jeitos se apoiam na base.
+  const eixoJeito = f.jeito === "balanca" ? `${meioX}px ${meioY}px` : `${meioX}px ${y1}px`;
   const jeitoKf: Record<string, string> = {
     rola: "0%,50%,100%{transform:none}25%{transform:rotate(-2.5deg)}75%{transform:rotate(2.5deg)}",
     deriva: "0%,50%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}",
@@ -165,18 +165,24 @@ export function partesDoDot(dot: Dot, o: Opcoes = {}) {
     css.push(
       `.${p}{overflow:visible}`,
       `.${p} *{transform-box:fill-box;transform-origin:center}`,
-      `.${p}-corpo,.${p}-jeito{transform-box:view-box;transform-origin:${meioX}px ${y1}px}`,
-      `.${p}-pele{transform-box:view-box;transform-origin:${meioX}px ${meioY}px}`,
+      // O que muda de um formato pro outro (ponto de apoio e jeito de se mexer) vem de variáveis no <svg>.
+      // Assim o CSS do dot vivo é o mesmo em qualquer formato, e trocar de formato não troca a folha de estilo,
+      // que obrigaria o navegador a restilizar a página inteira.
+      `.${p}-corpo{transform-box:view-box;transform-origin:var(--pe)}`,
+      `.${p}-jeito{transform-box:view-box;transform-origin:var(--eixo)}`,
       `.${p}-sombra{opacity:.16}`,
       `.${p}-fx,.${p}-fechados,.${p}-arcos{display:none}`,
       `.${p}-boca{opacity:0;transform:scale(.4);transition:opacity .2s,transform .3s cubic-bezier(.34,1.56,.64,1)}`,
       `.${p}-tinta{opacity:0}`,
-      kf("jeito", jeitoKf[f.jeito]),
+      ...(vivo ? Object.keys(jeitoKf) : [f.jeito]).map((j) => kf(`jeito-${j}`, jeitoKf[j])),
     );
     for (const est of estados) {
       const ciclo = estadoPorId(est).ciclo;
       const periodo = ciclo / Math.max(1, Math.round(ciclo / 3));
-      css.push(`${em(est, alvoJeito)}{${a("jeito", periodo)}}`, `${em(est, "fx-" + est)}{display:inline}`);
+      css.push(
+        `${em(est, "jeito")}{${a("jeito", periodo).replace(`animation:${p}-jeito `, "animation:var(--jeito) ")}}`,
+        `${em(est, "fx-" + est)}{display:inline}`,
+      );
     }
     if (vivo) {
       css.push(
@@ -484,8 +490,9 @@ export function partesDoDot(dot: Dot, o: Opcoes = {}) {
   const rotulo = o.rotulo ?? `Dot ${f.nome.toLowerCase()}, ${estadoPorId(estado).nome.toLowerCase()}`;
   const fundo = o.fundo ? `<rect width="256" height="256" fill="${o.fundo}"/>` : "";
 
+  const variaveis = animado ? ` style="--pe:${meioX}px ${y1}px;--eixo:${eixoJeito};--jeito:${p}-jeito-${f.jeito}"` : "";
   const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${o.recortado ? `${meioX - 106} ${meioY - 104} 212 212` : "0 0 256 256"}"${tam} class="${p}" data-estado="${estado}" role="img" aria-label="${rotulo}">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${o.recortado ? `${meioX - 106} ${meioY - 104} 212 212` : "0 0 256 256"}"${tam} class="${p}" data-estado="${estado}"${variaveis} role="img" aria-label="${rotulo}">` +
     fundo +
     sombra +
     `<g class="${p}-corpo"${corpoPose}><g class="${p}-jeito">${pele}${o.semRosto ? "" : rosto}</g></g>` +

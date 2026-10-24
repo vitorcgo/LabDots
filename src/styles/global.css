@@ -75,6 +75,15 @@
   }
 }
 
+/* No celular o vidro vira fundo quase opaco: o desfoque teria que ser refeito a cada quadro de rolagem,
+   e sobre o fundo claro a diferença quase não aparece. */
+@media (max-width: 767px) {
+  .vidro {
+    backdrop-filter: none;
+    background: color-mix(in srgb, var(--superficie) 90%, transparent);
+  }
+}
+
 @layer base {
   body {
     background: var(--papel);
@@ -121,10 +130,15 @@
   display: block;
   width: 100%;
   height: 100%;
-  will-change: transform;
   transform-origin: 50% 85%;
-  animation: respira-mini 3.2s ease-in-out infinite;
-  animation-delay: calc(var(--fase, 0s) * -1);
+}
+/* Só respiram onde o anel e o time ficam à vista. Na faixa do celular, 25 bonecos respirando
+   viravam 25 camadas pra juntar a cada quadro; lá eles só piscam. */
+@media (min-width: 768px) and (min-height: 700px) {
+  .respira > span {
+    animation: respira-mini 3.2s ease-in-out infinite;
+    animation-delay: calc(var(--fase, 0s) * -1);
+  }
 }
 
 /* Leque de cores: lâminas presas num pino, abrem em arco como um leque de amostras de tinta. */

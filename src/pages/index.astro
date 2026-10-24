@@ -24,7 +24,7 @@ function posicaoNoCarrossel(i: number) {
   if (off > n / 2) off -= n;
   if (off < -n / 2) off += n;
   const longe = Math.abs(off);
-  return `transform:translateX(${off * 84}px) translateY(${-longe * longe * 3}px) rotate(${off * 6}deg) scale(${1 - longe * 0.13});opacity:${longe > 3 ? 0 : 1 - longe * 0.24};z-index:${10 - longe}${longe ? `;filter:blur(${(longe * 0.7).toFixed(1)}px)` : ""}`;
+  return `transform:translateX(${off * 84}px) translateY(${-longe * longe * 3}px) rotate(${off * 6}deg) scale(${1 - longe * 0.13});opacity:${longe > 3 ? 0 : 1 - longe * 0.24};z-index:${10 - longe}`;
 }
 const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b4bb7,#e5679b,#e8553a)]";
 ---
@@ -68,7 +68,7 @@ const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b
 
       <section id="palco" aria-label="Seu dot" class="relative mt-4 flex w-full flex-col items-center anel:mt-3 anel:size-(--palco)">
         <!-- Luz na cor do dot: dá cor ao vidro da interface e muda junto quando a cor muda. -->
-        <div class="pointer-events-none absolute top-[38%] left-1/2 size-[min(80vw,420px)] -translate-1/2 rounded-full bg-(--cor-dot) opacity-30 blur-[90px] transition-colors duration-700 anel:top-1/2 anel:size-[calc(var(--palco)*.62)] escuro:opacity-20" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute top-[38%] left-1/2 size-[min(80vw,420px)] -translate-1/2 rounded-full bg-(--cor-dot) opacity-30 blur-[56px] transition-colors duration-700 will-change-transform md:blur-[90px] anel:top-1/2 anel:size-[calc(var(--palco)*.62)] escuro:opacity-20" aria-hidden="true"></div>
         <button
           id="dot-vivo"
           type="button"
@@ -117,7 +117,7 @@ const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b
                 data-formato={f.id}
                 aria-label={f.nome}
                 aria-checked={f.id === d.formato ? "true" : "false"}
-                class="absolute top-1/2 left-1/2 -mt-9 -ml-9 size-18 rounded-[24px] p-2 transition-[transform,opacity,filter,background-color] duration-500 ease-mola aria-checked:bg-superficie/70 aria-checked:shadow-flutua [&>svg]:size-full"
+                class="absolute top-1/2 left-1/2 -mt-9 -ml-9 size-18 rounded-[24px] p-2 transition-[transform,opacity,background-color] duration-500 ease-mola aria-checked:bg-superficie/70 aria-checked:shadow-flutua [&>svg]:size-full"
                 set:html={gerarDot({ ...d, formato: f.id }, { ...parado, semRosto: true, recortado: true })}
               />
             ))
