@@ -2,7 +2,7 @@ import { luminancia } from "../lib/cor";
 import { ESTADOS, estadoPorId, type EstadoId } from "../lib/estados";
 import { EXPRESSOES } from "../lib/expressoes";
 import { FORMATOS, formatoPorId } from "../lib/formatos";
-import { LIMITE_OLHAR, gerarDot, olhosDoDot, recolorir, resolverTom, tintaDosOlhos, type Dot } from "../lib/gerador";
+import { LIMITE_OLHAR, gerarDot, olhosDoDot, recolorir, tintaDosOlhos, type Dot } from "../lib/gerador";
 import { AMOSTRAS, nomeDaCor } from "../lib/paleta";
 import { avisar } from "./avisos";
 import {
@@ -99,10 +99,10 @@ function trocarFormatoComEfeito() {
   };
 }
 
-// Cutucar: o dot dá um pulinho, sorri e solta uns pontinhos da própria cor.
+// Cutucar: o dot dá um pulinho e sorri.
 let fimSorriso = 0;
 let arrastou = false;
-vivo.addEventListener("click", (e) => {
+vivo.addEventListener("click", () => {
   // O clique que fecha um arraste de olhos não é cutucada.
   if (arrastou) return void (arrastou = false);
   vivo.style.transformOrigin = "50% 88%";
@@ -120,32 +120,6 @@ vivo.addEventListener("click", (e) => {
   svg.dataset.feliz = "";
   clearTimeout(fimSorriso);
   fimSorriso = window.setTimeout(() => delete svgVivo().dataset.feliz, 1100);
-  const r = vivo.getBoundingClientRect();
-  const x = e.clientX || r.left + r.width / 2;
-  const y = e.clientY || r.top + r.height / 2;
-  for (let i = 0; i < 8; i++) {
-    const p = document.createElement("span");
-    const tam = 5 + Math.random() * 9;
-    const ang = Math.random() * Math.PI * 2;
-    const dist = 50 + Math.random() * 90;
-    p.className = "pointer-events-none fixed z-50 rounded-full";
-    Object.assign(p.style, {
-      width: `${tam}px`,
-      height: `${tam}px`,
-      left: `${x - tam / 2}px`,
-      top: `${y - tam / 2}px`,
-      background: resolverTom(loja.dot.cor, sorteio(["b", "c0.4", "e0.25", "c0.7"])),
-    });
-    document.body.append(p);
-    p.animate(
-      [
-        { transform: "translate(0,0) scale(.3)", opacity: 1 },
-        { transform: `translate(${Math.cos(ang) * dist}px,${Math.sin(ang) * dist}px) scale(1)`, opacity: 1, offset: 0.6 },
-        { transform: `translate(${Math.cos(ang) * dist * 1.1}px,${Math.sin(ang) * dist + 30}px) scale(.2)`, opacity: 0 },
-      ],
-      { duration: 700 + Math.random() * 300, easing: "cubic-bezier(.2,.8,.3,1)" },
-    ).onfinish = () => p.remove();
-  }
 });
 
 // Arrastar o rosto: olhos e boca vão junto com o ponteiro, até o limite de cada lado.

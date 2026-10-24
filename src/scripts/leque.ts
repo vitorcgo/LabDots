@@ -37,9 +37,28 @@ export function iniciarLeque(leque: HTMLElement, o: OpcoesLeque) {
     leque.style.top = `${y}px`;
     // O leque abre apontando pro centro da tela, então nunca bate numa borda, esteja o botão onde estiver.
     // Ângulo 0 é pra cima e cresce no sentido horário, igual ao rotate() do CSS.
-    const centro = (Math.atan2(innerWidth / 2 - x, y - innerHeight / 2) * 180) / Math.PI;
+    const ideal = (Math.atan2(innerWidth / 2 - x, y - innerHeight / 2) * 180) / Math.PI;
     const folga = Math.min(x, innerWidth - x, y, innerHeight - y);
     const abertura = folga > 230 ? 150 : 110;
+    // Entre as direções em que todas as pontas cabem na tela, fica a mais perto do centro.
+    const comprimento = 196;
+    const cabe = (c: number) => {
+      for (let ang = c - abertura / 2; ang <= c + abertura / 2; ang += 10) {
+        const rad = (ang * Math.PI) / 180;
+        const px = x + Math.sin(rad) * comprimento;
+        const py = y - Math.cos(rad) * comprimento;
+        if (px < 8 || px > innerWidth - 8 || py < 8 || py > innerHeight - 8) return false;
+      }
+      return true;
+    };
+    let centro = ideal;
+    for (let desvio = 0; desvio <= 180; desvio += 5) {
+      const achou = [ideal + desvio, ideal - desvio].find(cabe);
+      if (achou !== undefined) {
+        centro = achou;
+        break;
+      }
+    }
     const lista = visiveis();
     const passo = abertura / (lista.length - 1);
     lista.forEach((l, i) => {

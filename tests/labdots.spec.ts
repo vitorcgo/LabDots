@@ -46,6 +46,8 @@ for (const tela of TELAS) {
       const itens = page.locator("#anel [data-expressao]");
       const n = await itens.count();
       const laterais = [await caixa(page, "#time"), await caixa(page, "#estados")];
+      const doca = await caixa(page, "#botao-cor");
+      expect(encosta(doca, cabecalho), "doca encostando no cabeçalho").toBe(false);
       const emAnel = await page.evaluate(() => matchMedia("(min-width: 768px) and (min-height: 700px)").matches);
       for (let i = 0; i < n && emAnel; i++) {
         const b = (await itens.nth(i).boundingBox())!;

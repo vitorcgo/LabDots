@@ -117,7 +117,7 @@ const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b
         <p id="nome-formato" class="text-center text-xs text-tinta-2" aria-live="polite">Fantasma</p>
       </section>
 
-      <div class="vidro mt-3 flex w-full max-w-[640px] items-center gap-1.5 rounded-[24px] p-1.5 lateral:fixed lateral:top-1/2 lateral:right-4 lateral:mt-0 lateral:w-auto lateral:-translate-y-1/2 lateral:flex-col">
+      <div class="vidro mt-3 flex w-full max-w-[640px] items-center gap-1.5 rounded-[24px] p-1.5 lateral:fixed lateral:top-[calc(50%+30px)] lateral:right-4 lateral:mt-0 lateral:max-h-[calc(100dvh-96px)] lateral:w-auto lateral:-translate-y-1/2 lateral:flex-col">
         <button
           id="botao-cor"
           type="button"
@@ -181,9 +181,9 @@ const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b
                 data-estado={e.id}
                 title={e.dica}
                 aria-checked={e.id === "ocioso" ? "true" : "false"}
-                class="aperta flex h-14 min-w-[64px] flex-1 flex-col items-center justify-center rounded-[15px] text-xs lateral:h-[54px] lateral:w-[76px] lateral:flex-none text-tinta-2 hover:text-tinta aria-checked:bg-superficie aria-checked:font-semibold aria-checked:text-tinta aria-checked:shadow-flutua"
+                class="aperta flex h-14 min-w-[64px] flex-1 flex-col items-center justify-center rounded-[15px] text-xs lateral:h-[52px] lateral:w-[76px] lateral:flex-none lateral:text-[11px] text-tinta-2 hover:text-tinta aria-checked:bg-superficie aria-checked:font-semibold aria-checked:text-tinta aria-checked:shadow-flutua"
               >
-                <span data-mini class="size-9 [&>svg]:size-full" set:html={gerarDot(d, { ...parado, estado: e.id, recortado: true })} />
+                <span data-mini class="size-9 shrink-0 lateral:size-7.5 [&>svg]:size-full" set:html={gerarDot(d, { ...parado, estado: e.id, recortado: true })} />
                 {e.nome}
               </button>
             ))
