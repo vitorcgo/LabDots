@@ -232,29 +232,6 @@ addEventListener("pointermove", (e) => {
   });
 });
 
-/** Um pontinho voa de um elemento pra outro num arco. */
-function voar(de: Element, para: Element, cor: string, aoChegar?: () => void) {
-  const a = de.getBoundingClientRect();
-  const b = para.getBoundingClientRect();
-  const p = document.createElement("span");
-  p.className = "pointer-events-none fixed z-50 size-3.5 rounded-full shadow-[0_2px_6px_rgb(0_0_0/.25)]";
-  Object.assign(p.style, { left: `${a.left + a.width / 2 - 7}px`, top: `${a.top + a.height / 2 - 7}px`, background: cor });
-  document.body.append(p);
-  const dx = b.left + b.width / 2 - (a.left + a.width / 2);
-  const dy = b.top + b.height / 2 - (a.top + a.height / 2);
-  p.animate(
-    [
-      { transform: "translate(0,0) scale(.6)" },
-      { transform: `translate(${dx * 0.5}px,${dy * 0.5 - 70}px) scale(1.5)`, offset: 0.5 },
-      { transform: `translate(${dx}px,${dy}px) scale(.5)` },
-    ],
-    { duration: 480, easing: "cubic-bezier(.45,0,.35,1)" },
-  ).onfinish = () => {
-    p.remove();
-    aoChegar?.();
-  };
-}
-
 // ---------- grupos de rádio (setas movem e escolhem) ----------
 
 function grupoRadio(grupo: HTMLElement, aoEscolher: (el: HTMLElement) => void) {
@@ -332,12 +309,8 @@ function entrarAnel() {
 function escolherExpressao(b: HTMLElement) {
   const id = b.dataset.expressao!;
   if (id === loja.dot.expressao) return;
-  // O voo mede as posições antes de qualquer mudança na página; medir depois força o navegador
-  // a recalcular estilo e layout de tudo no meio do clique.
-  voar(b, vivo, loja.dot.cor, () => {
-    vivo.style.transformOrigin = "50% 88%";
-    amassar(vivo, 0.7);
-  });
+  vivo.style.transformOrigin = "50% 88%";
+  amassar(vivo, 0.7);
   b.querySelector("span")?.animate(
     [{ transform: "none" }, { transform: "translateY(-10px) scale(.92,1.1)" }, { transform: "scale(1.08,.92)" }, { transform: "none" }],
     { duration: 420, easing: "ease-out" },
@@ -563,8 +536,7 @@ botaoSalvar.addEventListener("click", () => {
   if (r === "cheio") return void avisar(`O time já tem ${LIMITE_TIME} dots. Tire um pra abrir espaço`, "erro");
   const novo = listaTime.lastElementChild;
   if (novo) {
-    novo.animate([{ transform: "scale(0)" }, { transform: "scale(1)" }], { duration: 450, easing: MOLA, delay: 380, fill: "backwards" });
-    voar(vivo, novo, loja.dot.cor);
+    novo.animate([{ transform: "scale(0)" }, { transform: "scale(1)" }], { duration: 450, easing: MOLA });
   }
   amassar(vivo, 0.6);
 });
