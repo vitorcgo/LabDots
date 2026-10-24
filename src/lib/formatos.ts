@@ -217,7 +217,7 @@ export const FORMATOS: Formato[] = [
     olho: { x: 128, y: 148, vao: 26, escala: 1.2 },
     jeito: "treme",
     detalhe: (tom) =>
-      `<path d="M70 210V124C54 118 50 100 60 88C72 72 102 68 128 70C154 68 184 72 196 88C206 100 202 118 186 124V210" fill="none" ${tom("e0.24", "stroke")} stroke-width="7" stroke-linejoin="round" opacity=".55"/><rect x="146" y="86" width="34" height="22" rx="6" transform="rotate(-10 163 97)" ${tom("c0.8")}/>`,
+      `<path d="M70 210V124C54 118 50 100 60 88C72 72 102 68 128 70C154 68 184 72 196 88C206 100 202 118 186 124V210" fill="none" ${tom("e0.24", "stroke")} stroke-width="7" stroke-linejoin="round" opacity=".55"/><rect x="148" y="64" width="30" height="18" rx="5" transform="rotate(-8 163 73)" ${tom("c0.8")}/>`,
   },
 ];
 
