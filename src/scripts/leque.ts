@@ -21,6 +21,18 @@ export function iniciarLeque(leque: HTMLElement, o: OpcoesLeque) {
   const botoes = new Map<HTMLButtonElement, Alvo>();
   const marcadas: Record<Alvo, string> = { corpo: "", olhos: "auto" };
   let botao: HTMLButtonElement | null = null;
+  // Prova no máximo uma cor por quadro, mesmo passando o mouse rápido pelo leque.
+  let provaPendente: [string | null, Alvo] | null = null;
+  const provar = (cor: string | null, a: Alvo) => {
+    if (!provaPendente) requestAnimationFrame(() => {
+      const [c, al] = provaPendente!;
+      provaPendente = null;
+      o.aoProvar(c, al);
+    });
+    provaPendente = [cor, a];
+  };
+  // O foco que o próprio leque põe ao abrir não conta como prova.
+  let focandoAoAbrir = false;
   let alvo: Alvo = "corpo";
   let fechando = 0;
 
@@ -92,18 +104,22 @@ export function iniciarLeque(leque: HTMLElement, o: OpcoesLeque) {
     marcar(marcadas[alvo]);
     leque.hidden = false;
     posicionar();
-    void leque.offsetWidth;
-    leque.dataset.aberto = "";
+    // Abre no quadro seguinte, deixando o navegador calcular o layout no tempo dele, não no clique.
+    requestAnimationFrame(() => requestAnimationFrame(() => (leque.dataset.aberto = "")));
     quem.setAttribute("aria-expanded", "true");
     const marcada = amostras().find((p) => p.getAttribute("aria-checked") === "true") ?? amostras()[0];
-    setTimeout(() => marcada.focus({ preventScroll: true }), 140);
+    setTimeout(() => {
+      focandoAoAbrir = true;
+      marcada.focus({ preventScroll: true });
+      focandoAoAbrir = false;
+    }, 140);
   }
 
   function fechar(devolverFoco = false) {
     if (leque.dataset.aberto === undefined) return;
     delete leque.dataset.aberto;
     botao?.setAttribute("aria-expanded", "false");
-    o.aoProvar(null, alvo);
+    provar(null, alvo);
     fechando = window.setTimeout(() => (leque.hidden = true), 300);
     if (devolverFoco) botao?.focus({ preventScroll: true });
   }
@@ -116,17 +132,18 @@ export function iniciarLeque(leque: HTMLElement, o: OpcoesLeque) {
 
   todas.forEach((l) => {
     if (!(l instanceof HTMLButtonElement)) return;
-    const provar = () => {
-      o.aoProvar(l.dataset.cor!, alvo);
+    const provarEsta = () => {
+      if (focandoAoAbrir) return;
+      provar(l.dataset.cor!, alvo);
       nome.textContent = nomeDe(l.dataset.cor!);
     };
-    l.addEventListener("pointerenter", provar);
-    l.addEventListener("focus", provar);
+    l.addEventListener("pointerenter", provarEsta);
+    l.addEventListener("focus", provarEsta);
     l.addEventListener("click", () => escolher(l.dataset.cor!));
   });
-  leque.addEventListener("pointerleave", () => o.aoProvar(null, alvo));
+  leque.addEventListener("pointerleave", () => provar(null, alvo));
   livre.addEventListener("input", () => {
-    o.aoProvar(livre.value, alvo);
+    provar(livre.value, alvo);
     nome.textContent = livre.value.toUpperCase();
   });
   livre.addEventListener("change", () => escolher(livre.value));

@@ -63,10 +63,11 @@ function trocarOlhos(dot: Dot) {
 }
 
 /** Pinta o dot vivo com outra cor sem refazer o SVG, pra transição de cor ficar suave. */
-function pintarVivo(cor: string) {
-  document.body.style.setProperty("--cor-dot", cor);
-  // Se a cor nova pede olhos de outra tinta (corpo muito escuro), aí sim refaz o SVG.
-  if (tintaDe({ ...loja.dot, cor }) !== tintaOlhos) return desenharVivo({ cor });
+function pintarVivo(cor: string, previa = false) {
+  // Na prova só o dot do meio muda: mexer na variável do body faz a página inteira recalcular estilo.
+  if (!previa) document.body.style.setProperty("--cor-dot", cor);
+  // Cor escura pede olhos de outra tinta. Na prova basta trocar os olhos; ao escolher, refaz o SVG.
+  if (!previa && tintaDe({ ...loja.dot, cor }) !== tintaOlhos) return desenharVivo({ cor });
   recolorir(svgVivo(), cor);
   trocarOlhos({ ...loja.dot, cor });
 }
@@ -267,28 +268,40 @@ function estiloCompartilhado(nome: string, css: string) {
 }
 
 let tintaAnel = "";
-function desenharAnel() {
-  const op = {
-    prefixo: "anel",
-    vivo: true,
-    estado: "ocioso",
-    estados: ["ocioso"],
-    sombra: false,
-    recortado: true,
-    faseVariavel: true,
-    velocidade: loja.ajustes.velocidade,
-  } as const;
-  let css = "";
-  itensAnel.forEach((b, i) => {
-    const partes = partesDoDot({ ...loja.dot, expressao: b.dataset.expressao! }, op);
-    css = partes.css;
-    b.innerHTML = partes.svg;
-    // Cada boneco num ponto do ciclo, pra não piscarem todos juntos.
+let loteAnel = 0;
+/** Com `aos poucos`, refaz alguns bonecos por quadro em vez dos 25 de uma vez. */
+function desenharAnel(aosPoucos = false) {
+  // Desenho parado (quem respira é o <span> em volta) e com data-tom, pra dar pra recolorir.
+  const op = { prefixo: "anel", vivo: true, animado: false, sombra: false, recortado: true } as const;
+  const dot = { ...loja.dot };
+  const lote = ++loteAnel;
+  const desenhar = (b: HTMLButtonElement, i: number) => {
+    b.innerHTML = `<span>${gerarDot({ ...dot, expressao: b.dataset.expressao! }, op)}</span>`;
+    // Cada boneco num ponto do ciclo, pra não respirarem todos juntos.
     b.style.setProperty("--fase", `${(i * 0.83).toFixed(2)}s`);
-  });
-  estiloCompartilhado("anel", css);
-  tintaAnel = tintaDe(loja.dot);
+  };
+  tintaAnel = tintaDe(dot);
+  if (!aosPoucos) return itensAnel.forEach(desenhar);
+  let i = 0;
+  const passo = () => {
+    // Uma mudança nova no meio do caminho cancela este lote.
+    if (lote !== loteAnel) return;
+    for (const fim = Math.min(i + 5, itensAnel.length); i < fim; i++) desenhar(itensAnel[i], i);
+    if (i < itensAnel.length) requestAnimationFrame(passo);
+  };
+  passo();
 }
+
+// Uma piscada por vez, num boneco sorteado do anel ou do time. Sai bem mais barato que 25 animações rodando.
+setInterval(() => {
+  if (document.hidden) return;
+  const olhos = $$<SVGGElement>(".anel-item .anel-pisca, #lista-time [class$='-pisca']");
+  const g = olhos[Math.floor(Math.random() * olhos.length)];
+  if (!g) return;
+  g.style.transformBox = "fill-box";
+  g.style.transformOrigin = "center";
+  g.animate([{ transform: "none" }, { transform: "scaleY(.1)" }, { transform: "none" }], { duration: 180, easing: "ease-in-out" });
+}, 650);
 
 function recolorirMiniaturas(cor: string) {
   for (const b of [...itensAnel, ...itensForma]) {
@@ -309,7 +322,7 @@ function entrarAnel() {
 function escolherExpressao(b: HTMLElement) {
   const id = b.dataset.expressao!;
   if (id === loja.dot.expressao) return;
-  b.querySelector("svg")?.animate(
+  b.querySelector("span")?.animate(
     [{ transform: "none" }, { transform: "translateY(-10px) scale(.92,1.1)" }, { transform: "scale(1.08,.92)" }, { transform: "none" }],
     { duration: 420, easing: "ease-out" },
   );
@@ -473,9 +486,8 @@ const leque = iniciarLeque($("#leque"), {
     if (alvo === "olhos") {
       return desenharVivo({ corOlho: cor === null ? loja.dot.corOlho : cor === "auto" ? undefined : cor });
     }
-    const c = cor ?? loja.dot.cor;
-    pintarVivo(c);
-    recolorirMiniaturas(c);
+    // Provar a cor mexe só no dot do meio; as miniaturas pegam a cor quando ela é escolhida.
+    pintarVivo(cor ?? loja.dot.cor, true);
   },
   aoEscolher(cor, alvo) {
     if (alvo === "olhos") {
@@ -501,9 +513,10 @@ function desenharTime() {
     li.className = "group relative shrink-0";
     const abrir = document.createElement("button");
     abrir.type = "button";
-    abrir.className = "aperta grid size-12 place-items-center rounded-2xl hover:bg-superficie/70 [&>svg]:size-10";
+    abrir.className = "aperta respira grid size-12 place-items-center rounded-2xl p-1 hover:bg-superficie/70 [&_svg]:size-full";
+    abrir.style.setProperty("--fase", `${(i * 1.3).toFixed(1)}s`);
     abrir.setAttribute("aria-label", `Abrir ${formatoPorId(m.formato).nome.toLowerCase()} ${nomeDaCor(m.cor).toLowerCase()}`);
-    abrir.innerHTML = gerarDot(m, { prefixo: `t${i}`, estado: "ocioso", estados: ["ocioso"], sombra: false, recortado: true, fase: i * 1.3 });
+    abrir.innerHTML = `<span>${gerarDot(m, { prefixo: `t${i}`, animado: false, sombra: false, recortado: true })}</span>`;
     abrir.addEventListener("click", () => {
       const { id, ...dot } = m;
       loja.mudarDot({ corOlho: undefined, olhoX: 0, olhoY: 0, vaoOlho: 0, larguraOlho: 1, ...dot }, "formato");
@@ -716,9 +729,9 @@ function atualizarControles() {
   marcar(itensAnel, (b) => b.dataset.expressao === loja.dot.expressao);
 }
 
-function desenharTudo() {
+function desenharTudo(aosPoucos = false) {
   atualizarControles();
-  desenharAnel();
+  desenharAnel(aosPoucos);
   posicionarCarrossel();
   desenharEstados();
   desenharPrevia();
@@ -733,7 +746,7 @@ function redesenharDepois() {
   requestAnimationFrame(() =>
     setTimeout(() => {
       redesenhoMarcado = false;
-      desenharTudo();
+      desenharTudo(true);
     }),
   );
 }

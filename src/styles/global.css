@@ -55,6 +55,17 @@
     0 10px 30px -18px rgb(30 20 10 / 0.5);
 }
 
+/* Painel que abre por cima (menus, ajustes): mesmo visual do vidro, sem desfoque. Ele cobre bonecos que
+   ficam animando, e o desfoque teria que ser refeito a cada quadro. */
+@utility painel {
+  background: color-mix(in srgb, var(--superficie) 94%, transparent);
+  box-shadow:
+    inset 0 1px 0 var(--brilho),
+    inset 0 0 0 1px color-mix(in srgb, var(--superficie) 70%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--borda) 60%, transparent),
+    0 16px 40px -20px rgb(30 20 10 / 0.55);
+}
+
 /* Botão que afunda no clique e volta com mola. */
 @utility aperta {
   transition: transform 0.35s var(--ease-mola), background-color 0.2s, color 0.2s;
@@ -93,6 +104,27 @@
     transform: translate(-50%, -50%) rotate(var(--ang)) translateY(calc(-0.5 * var(--r))) rotate(calc(-1 * var(--ang)))
       scale(0);
   }
+}
+
+/* Miniaturas (anel e time): o desenho fica parado e quem respira é um <span> em volta do SVG.
+   Transform num elemento HTML vai pra placa de vídeo; no próprio <svg>, o Chrome repinta a cada quadro. */
+@keyframes respira-mini {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: translateY(-1.5px) scale(1.035, 0.97);
+  }
+}
+.respira > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
+  transform-origin: 50% 85%;
+  animation: respira-mini 3.2s ease-in-out infinite;
+  animation-delay: calc(var(--fase, 0s) * -1);
 }
 
 /* Leque de cores: lâminas presas num pino, abrem em arco como um leque de amostras de tinta. */

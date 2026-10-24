@@ -93,8 +93,8 @@ const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b
                 aria-label={e.nome}
                 aria-checked={e.id === d.expressao ? "true" : "false"}
                 style={`--i:${i}`}
-                class="anel-item size-14 shrink-0 snap-center rounded-full transition-[background-color,box-shadow] hover:bg-superficie/60 aria-checked:bg-superficie/80 aria-checked:shadow-[0_0_0_4px_color-mix(in_srgb,var(--cor-dot)_35%,transparent)] [&>svg]:size-full"
-                set:html={gerarDot({ ...d, expressao: e.id }, { ...parado, recortado: true })}
+                class="anel-item respira size-14 shrink-0 snap-center rounded-full transition-[background-color,box-shadow] hover:bg-superficie/60 aria-checked:bg-superficie/80 aria-checked:shadow-[0_0_0_4px_color-mix(in_srgb,var(--cor-dot)_35%,transparent)] [&_svg]:size-full"
+                set:html={`<span>${gerarDot({ ...d, expressao: e.id }, { ...parado, recortado: true })}</span>`}
               />
             ))
           }
@@ -168,7 +168,7 @@ const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b
             role="dialog"
             aria-label="Olhos"
             hidden
-            class="vidro absolute bottom-full left-0 z-30 mb-3 w-64 rounded-3xl p-4 lateral:top-0 lateral:right-full lateral:bottom-auto lateral:left-auto lateral:mr-3 lateral:mb-0"
+            class="painel absolute bottom-full left-0 z-30 mb-3 w-64 rounded-3xl p-4 lateral:top-0 lateral:right-full lateral:bottom-auto lateral:left-auto lateral:mr-3 lateral:mb-0"
           >
             <label class="block text-sm font-semibold" for="vao-olho">Distância entre os olhos</label>
             <input id="vao-olho" type="range" min="-14" max="18" step="1" value="0" class="mt-2 h-11 w-full accent-(--cor-dot)" />
@@ -230,7 +230,7 @@ const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b
     </main>
 
     <div id="leque" class="leque fixed z-40 size-0" role="dialog" aria-label="Cor do dot" hidden>
-      <p id="nome-cor" class="vidro pointer-events-none absolute -translate-1/2 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap opacity-0 transition-opacity [.leque[data-aberto]_&]:opacity-100" aria-hidden="true">Tangerina</p>
+      <p id="nome-cor" class="painel pointer-events-none absolute -translate-1/2 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap opacity-0 transition-opacity [.leque[data-aberto]_&]:opacity-100" aria-hidden="true">Tangerina</p>
       <div role="radiogroup" aria-label="Cores">
         <button
           type="button"
