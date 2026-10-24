@@ -52,15 +52,21 @@ function desenharVivo(extra: Partial<Dot> = {}) {
   tintaOlhos = tintaDe(dot);
 }
 
-function trocarOlhos(dot: Dot) {
-  const o = olhosDoDot(dot);
-  const svg = svgVivo();
-  svg.querySelector(".vivo-olhos")!.innerHTML = o.olhos;
-  svg.querySelector(".vivo-fechados")?.replaceChildren();
-  svg.querySelector(".vivo-fechados")?.insertAdjacentHTML("beforeend", o.fechados);
-  svg.querySelector(".vivo-arcos")?.replaceChildren();
-  svg.querySelector(".vivo-arcos")?.insertAdjacentHTML("beforeend", o.arcos);
+/** Troca só os grupos de olhos de um SVG já desenhado, sem refazer o resto. */
+function trocarOlhosEm(svg: Element | null, prefixo: string, dot: Dot, o = olhosDoDot(dot)) {
+  if (!svg) return;
+  const olhos = svg.querySelector(`.${prefixo}-olhos`);
+  // No desenho parado de Sucesso e Dormindo, o grupo "olhos" guarda os arcos ou os fechados: esses não mudam.
+  const estado = svg.getAttribute("data-estado");
+  const parado = !svg.querySelector(`.${prefixo}-arcos, .${prefixo}-fechados`);
+  if (olhos && !(parado && (estado === "sucesso" || estado === "dormindo"))) olhos.innerHTML = o.olhos;
+  const fechados = svg.querySelector(`.${prefixo}-fechados`);
+  if (fechados) fechados.innerHTML = o.fechados;
+  const arcos = svg.querySelector(`.${prefixo}-arcos`);
+  if (arcos) arcos.innerHTML = o.arcos;
 }
+
+const trocarOlhos = (dot: Dot) => trocarOlhosEm(svgVivo(), "vivo", dot);
 
 /** Pinta o dot vivo com outra cor sem refazer o SVG, pra transição de cor ficar suave. */
 function pintarVivo(cor: string, previa = false) {
@@ -322,15 +328,17 @@ function entrarAnel() {
 function escolherExpressao(b: HTMLElement) {
   const id = b.dataset.expressao!;
   if (id === loja.dot.expressao) return;
+  // O voo mede as posições antes de qualquer mudança na página; medir depois força o navegador
+  // a recalcular estilo e layout de tudo no meio do clique.
+  voar(b, vivo, loja.dot.cor, () => {
+    vivo.style.transformOrigin = "50% 88%";
+    amassar(vivo, 0.7);
+  });
   b.querySelector("span")?.animate(
     [{ transform: "none" }, { transform: "translateY(-10px) scale(.92,1.1)" }, { transform: "scale(1.08,.92)" }, { transform: "none" }],
     { duration: 420, easing: "ease-out" },
   );
   loja.mudarDot({ expressao: id }, "expressao");
-  voar(b, vivo, loja.dot.cor, () => {
-    vivo.style.transformOrigin = "50% 88%";
-    amassar(vivo, 0.7);
-  });
 }
 
 itensAnel.forEach((b) => {
@@ -762,10 +770,11 @@ loja.ouvir((motivo) => {
   if (motivo === "expressao") {
     trocarOlhos(loja.dot);
     marcar(itensAnel, (b) => b.dataset.expressao === loja.dot.expressao);
-    // Abas e prévia do time não estão no foco do clique: ficam pro quadro seguinte.
+    // Abas e prévia do time só trocam os olhos, no quadro seguinte.
     requestAnimationFrame(() => {
-      desenharEstados();
-      desenharPrevia();
+      const o = olhosDoDot(loja.dot);
+      abasEstado.forEach((b) => trocarOlhosEm($("[data-mini] svg", b), "aba", loja.dot, o));
+      trocarOlhosEm($("#previa-salvar svg"), "dot", loja.dot, o);
     });
     return;
   }

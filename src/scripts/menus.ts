@@ -91,8 +91,13 @@ export function popover(botao: HTMLElement, painel: HTMLElement, o: OpcoesPopove
 /** Marca o item escolhido num grupo de rádios (aria-checked). */
 export function marcar(grupo: Iterable<Element>, ativo: (el: HTMLElement) => boolean) {
   for (const el of grupo) {
-    const sim = ativo(el as HTMLElement);
-    el.setAttribute("aria-checked", String(sim));
-    if ((el as HTMLElement).closest('[role="radiogroup"]')) (el as HTMLElement).tabIndex = sim ? 0 : -1;
+    const sim = String(ativo(el as HTMLElement));
+    const item = el as HTMLElement;
+    // Num grupo de rádios só o escolhido entra no Tab; as setas andam entre os outros.
+    const tab = item.closest('[role="radiogroup"]') ? (sim === "true" ? 0 : -1) : item.tabIndex;
+    // Só mexe no que mudou: cada atributo alterado faz o navegador revisar o estilo daquele botão.
+    if (el.getAttribute("aria-checked") === sim && item.tabIndex === tab) continue;
+    el.setAttribute("aria-checked", sim);
+    item.tabIndex = tab;
   }
 }
