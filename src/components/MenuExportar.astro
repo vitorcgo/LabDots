@@ -1,0 +1,68 @@
+---
+import { TAMANHOS_PNG } from "../lib/padrao";
+
+
+const titulo = "px-3 pt-2 pb-1.5 text-xs text-tinta-2";
+const item =
+  "group flex min-h-11 md:min-h-10 w-full items-center justify-between gap-4 rounded-xl px-3 text-left text-sm hover:bg-superficie/70 focus-visible:bg-superficie/70 disabled:opacity-45 disabled:hover:bg-transparent";
+const marca = "size-2 shrink-0 rounded-full bg-tinta opacity-0 group-aria-checked:opacity-100";
+const divisor = "mx-3 my-1.5 border-t border-borda";
+---
+
+{
+  (
+    <div role="group" aria-label="PNG">
+      <p class={titulo}>PNG transparente</p>
+      <div class="flex flex-wrap gap-1.5 px-3 pb-2">
+        {TAMANHOS_PNG.map((t) => (
+          <button type="button" role="menuitemradio" data-png={t} class="h-11 rounded-full px-3.5 text-sm tabular-nums ring-1 ring-borda aria-checked:bg-tinta aria-checked:text-papel aria-checked:ring-tinta">
+            {t} px
+          </button>
+        ))}
+      </div>
+      <button type="button" role="menuitem" data-acao="copiar-png" class={item}>
+        Copiar PNG
+      </button>
+      <hr class={divisor} />
+    </div>
+  )
+}
+<div role="group" aria-label="Estilo">
+  <p class={titulo}>Estilo</p>
+  <button type="button" role="menuitemradio" data-estilo="animado" class={item}>
+    <span class="group-aria-checked:font-semibold">Animado</span><span class={marca}></span>
+  </button>
+  <button type="button" role="menuitemradio" data-estilo="parado" class={item}>
+    <span class="group-aria-checked:font-semibold">Parado</span><span class={marca}></span>
+  </button>
+</div>
+<hr class={divisor} />
+<div role="group" aria-label="Este estado">
+  <p class={titulo}>Este estado · <span data-titulo-estado>Ocioso</span></p>
+  <button type="button" role="menuitem" data-acao="copiar-svg" class={item}>Copiar SVG</button>
+  <button type="button" role="menuitem" data-acao="baixar-svg" class={item}>Baixar SVG</button>
+  <button type="button" role="menuitem" data-acao="baixar-gif" class={item}>Baixar GIF · pro Figma</button>
+</div>
+<hr class={divisor} />
+<div role="group" aria-label="Todos os estados">
+  <p class={titulo}>Todos os 8 estados</p>
+  <button type="button" role="menuitem" data-acao="copiar-unico" class={item}>Copiar SVG único · troca por data-estado</button>
+  <button type="button" role="menuitem" data-acao="copiar-folha" class={item}>Copiar folha SVG</button>
+  <button type="button" role="menuitem" data-acao="baixar-zip" class={item}>Baixar tudo · SVG, PNG e GIF (.zip)</button>
+</div>
+<hr class={divisor} />
+<div role="group" aria-label="Time">
+  <p class={titulo}>Time · <span data-titulo-time>nenhum dot salvo</span></p>
+  <button type="button" role="menuitem" data-acao="copiar-folha-time" data-precisa-time class={item}>Copiar folha do time</button>
+  <button type="button" role="menuitem" data-acao="baixar-zip-time" data-precisa-time class={item}>Baixar time · 8 estados de cada (.zip)</button>
+</div>
+<hr class={divisor} />
+<div role="group" aria-label="Fundo do GIF">
+  <p class={titulo}>Fundo do GIF</p>
+  <button type="button" role="menuitemradio" data-fundo-gif="branco" class={item}>
+    <span class="group-aria-checked:font-semibold">Branco</span><span class={marca}></span>
+  </button>
+  <button type="button" role="menuitemradio" data-fundo-gif="transparente" class={item}>
+    <span class="group-aria-checked:font-semibold">Transparente</span><span class={marca}></span>
+  </button>
+</div>

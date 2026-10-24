@@ -1,0 +1,118 @@
+@import "@fontsource-variable/bricolage-grotesque";
+@import "tailwindcss";
+/* A detecção automática não enxerga os arquivos neste drive no Windows, então a origem vai explícita. */
+@source "../";
+
+@custom-variant escuro (&:where([data-tema="escuro"], [data-tema="escuro"] *));
+/* Tela larga e alta o bastante pras expressões formarem o anel em volta do dot. */
+@custom-variant anel (@media (min-width: 768px) and (min-height: 700px));
+/* Tela grande: time na esquerda e estados em pé na direita, o palco fica com a altura toda. */
+@custom-variant lateral (@media (min-width: 1024px) and (min-height: 640px));
+
+:root {
+  --papel: #f2eee6;
+  --superficie: #fffdf9;
+  --trilho: #ebe5da;
+  --tinta: #1f1b17;
+  --tinta-2: #5c544b;
+  --borda: #ddd5c8;
+  --pontinho: #cbc2b4;
+  --brilho: rgb(255 255 255 / 0.75);
+  color-scheme: light;
+}
+
+[data-tema="escuro"] {
+  --papel: #161412;
+  --superficie: #221f1c;
+  --trilho: #2c2824;
+  --tinta: #f3ede4;
+  --tinta-2: #b5ab9f;
+  --borda: #3a352f;
+  --pontinho: #3b362f;
+  --brilho: rgb(255 255 255 / 0.09);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --color-papel: var(--papel);
+  --color-superficie: var(--superficie);
+  --color-trilho: var(--trilho);
+  --color-tinta: var(--tinta);
+  --color-tinta-2: var(--tinta-2);
+  --color-borda: var(--borda);
+  --shadow-flutua: 0 1px 0 var(--borda), 0 8px 24px -14px rgb(30 20 10 / 0.35);
+  --ease-mola: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Vidro: a UI flutua sobre o pontilhado e a luz colorida do palco. */
+@utility vidro {
+  background: color-mix(in srgb, var(--superficie) 55%, transparent);
+  backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow:
+    inset 0 1px 0 var(--brilho),
+    inset 0 0 0 1px color-mix(in srgb, var(--superficie) 70%, transparent),
+    0 10px 30px -18px rgb(30 20 10 / 0.5);
+}
+
+/* Botão que afunda no clique e volta com mola. */
+@utility aperta {
+  transition: transform 0.35s var(--ease-mola), background-color 0.2s, color 0.2s;
+  &:active {
+    transform: scale(0.92);
+    transition-duration: 0.08s;
+  }
+}
+
+@layer base {
+  body {
+    background: var(--papel);
+    color: var(--tinta);
+  }
+  :focus-visible {
+    outline: 2.5px solid var(--tinta);
+    outline-offset: 3px;
+    border-radius: 12px;
+  }
+}
+
+/* Anel de expressões: cada item gira até o seu ângulo, sobe o raio e desgira pra ficar em pé. */
+@media (min-width: 768px) and (min-height: 700px) {
+  .anel-item {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--item);
+    height: var(--item);
+    --ang: calc(-145deg + var(--i) * 290deg / (var(--n) - 1));
+    transform: translate(-50%, -50%) rotate(var(--ang)) translateY(calc(-1 * var(--r) - var(--empurra, 0px)))
+      rotate(calc(-1 * var(--ang))) scale(var(--zoom, 1));
+    transition: transform 0.4s var(--ease-mola);
+  }
+  .anel-item.entrando {
+    transform: translate(-50%, -50%) rotate(var(--ang)) translateY(calc(-0.5 * var(--r))) rotate(calc(-1 * var(--ang)))
+      scale(0);
+  }
+}
+
+/* Leque de cores: lâminas presas num pino, abrem em arco como um leque de amostras de tinta. */
+.lamina {
+  transform-origin: 50% 100%;
+  transform: rotate(0deg) translateY(-30px) scale(0.6);
+  opacity: 0;
+  transition:
+    transform 0.22s cubic-bezier(0.5, 0, 0.75, 0),
+    opacity 0.16s;
+}
+.leque[data-aberto] .lamina {
+  transform: rotate(var(--ang)) translateY(-38px);
+  opacity: 1;
+  transition:
+    transform 0.55s var(--ease-mola) var(--atraso),
+    opacity 0.12s var(--atraso);
+}
+.leque[data-aberto] .lamina:is(:hover, :focus-visible) {
+  z-index: 5;
+  transform: rotate(var(--ang)) translateY(-56px);
+  transition-delay: 0s;
+}

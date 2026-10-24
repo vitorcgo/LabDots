@@ -1,0 +1,285 @@
+---
+import "../styles/global.css";
+import Cabecalho from "../components/Cabecalho.astro";
+import Icone from "../components/Icone.astro";
+import { gerarDot } from "../lib/gerador";
+import { EXPRESSOES } from "../lib/expressoes";
+import { ESTADOS } from "../lib/estados";
+import { FORMATOS } from "../lib/formatos";
+import { AMOSTRAS } from "../lib/paleta";
+import { DOT_INICIAL } from "../lib/padrao";
+
+const d = DOT_INICIAL;
+const vivo = gerarDot(d, { prefixo: "vivo", vivo: true, rotulo: "Seu dot" });
+const parado = { animado: false, sombra: false } as const;
+const icone = gerarDot(d, { ...parado, recortado: true });
+const descricao = "Laboratório de dots: monte um mascote em SVG animado, escolha formato, expressão, cor e estado, e exporte em SVG, PNG ou GIF.";
+// Mesma conta do script (posicionarCarrossel), pra página já sair certa antes dele rodar.
+const atual = FORMATOS.findIndex((f) => f.id === d.formato);
+function posicaoNoCarrossel(i: number) {
+  const n = FORMATOS.length;
+  let off = i - atual;
+  if (off > n / 2) off -= n;
+  if (off < -n / 2) off += n;
+  const longe = Math.abs(off);
+  return `transform:translateX(${off * 84}px) translateY(${-longe * longe * 3}px) rotate(${off * 6}deg) scale(${1 - longe * 0.13});opacity:${longe > 3 ? 0 : 1 - longe * 0.24};z-index:${10 - longe}${longe ? `;filter:blur(${(longe * 0.7).toFixed(1)}px)` : ""}`;
+}
+const arcoIris = "bg-[conic-gradient(#e8553a,#e8b931,#a5c64a,#3fb8a0,#4c9be8,#7b4bb7,#e5679b,#e8553a)]";
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>LabDots · laboratório de dots</title>
+    <meta name="description" content={descricao} />
+    <meta property="og:title" content="LabDots" />
+    <meta property="og:description" content={descricao} />
+    <meta property="og:image" content="/capa.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href={`data:image/svg+xml,${encodeURIComponent(icone)}`} />
+    <script is:inline>
+      try {
+        const c = JSON.parse(localStorage.getItem("labdots:ajustes") || "{}");
+        if (c.tema === "escuro") document.documentElement.dataset.tema = "escuro";
+      } catch {}
+    </script>
+  </head>
+  <body class="min-h-dvh overflow-x-hidden antialiased" style={`--cor-dot:${d.cor};--tinta-dot:#ffffff`}>
+    <canvas id="fundo" class="pointer-events-none fixed inset-0 size-full" aria-hidden="true"></canvas>
+
+    <Cabecalho />
+
+    <main
+      class="relative z-10 flex flex-col items-center px-4 pb-10 [--palco:clamp(420px,min(92vw,calc(100dvh-340px)),620px)] lateral:[--palco:clamp(420px,min(calc(100vw-300px),calc(100dvh-250px)),660px)]"
+      style="--item: clamp(44px, calc(var(--palco) * .092), 58px); --r: calc(var(--palco) / 2 - var(--item) / 2 - 2px)"
+    >
+      <h1 class="sr-only">LabDots, laboratório de dots</h1>
+
+      <section id="palco" aria-label="Seu dot" class="relative mt-4 flex w-full flex-col items-center anel:mt-3 anel:size-(--palco)">
+        <!-- Luz na cor do dot: dá cor ao vidro da interface e muda junto quando a cor muda. -->
+        <div class="pointer-events-none absolute top-[38%] left-1/2 size-[min(80vw,420px)] -translate-1/2 rounded-full bg-(--cor-dot) opacity-30 blur-[90px] transition-colors duration-700 anel:top-1/2 anel:size-[calc(var(--palco)*.62)] escuro:opacity-20" aria-hidden="true"></div>
+        <button
+          id="dot-vivo"
+          type="button"
+          aria-label="Cutucar o dot"
+          title="Clique pra cutucar. Arraste o rosto pra mover os olhos"
+          class="relative size-[min(64vw,280px)] cursor-grab touch-none rounded-[48px] select-none active:cursor-grabbing [&>svg]:size-full anel:absolute anel:top-1/2 anel:left-1/2 anel:size-[calc(var(--palco)*.5)] anel:-translate-1/2"
+          set:html={vivo}
+        />
+        <div
+          id="anel"
+          role="radiogroup"
+          aria-label="Expressão"
+          style={`--n:${EXPRESSOES.length}`}
+          class="mt-2 -mx-4 flex w-[calc(100%+32px)] max-w-xl snap-x gap-1.5 overflow-x-auto px-4 py-3 [scrollbar-width:none] anel:pointer-events-none anel:absolute anel:inset-0 anel:m-0 anel:block anel:w-auto anel:max-w-none anel:overflow-visible anel:p-0 anel:[&>*]:pointer-events-auto"
+        >
+          {
+            EXPRESSOES.map((e, i) => (
+              <button
+                type="button"
+                role="radio"
+                data-expressao={e.id}
+                aria-label={e.nome}
+                aria-checked={e.id === d.expressao ? "true" : "false"}
+                style={`--i:${i}`}
+                class="anel-item size-14 shrink-0 snap-center rounded-full transition-[background-color,box-shadow] hover:bg-superficie/60 aria-checked:bg-superficie/80 aria-checked:shadow-[0_0_0_4px_color-mix(in_srgb,var(--cor-dot)_35%,transparent)] [&>svg]:size-full"
+                set:html={gerarDot({ ...d, expressao: e.id }, { ...parado, recortado: true })}
+              />
+            ))
+          }
+        </div>
+      </section>
+
+      <section aria-label="Formato" class="relative mt-1 w-full max-w-[640px] overflow-x-clip">
+        <div
+          id="carrossel"
+          role="radiogroup"
+          aria-label="Formato"
+          class="relative h-[92px] touch-pan-y [mask-image:linear-gradient(90deg,transparent,#000_22%,#000_78%,transparent)]"
+        >
+          {
+            FORMATOS.map((f, i) => (
+              <button
+                style={posicaoNoCarrossel(i)}
+                type="button"
+                role="radio"
+                data-formato={f.id}
+                aria-label={f.nome}
+                aria-checked={f.id === d.formato ? "true" : "false"}
+                class="absolute top-1/2 left-1/2 -mt-9 -ml-9 size-18 rounded-[24px] p-2 transition-[transform,opacity,filter,background-color] duration-500 ease-mola aria-checked:bg-superficie/70 aria-checked:shadow-flutua [&>svg]:size-full"
+                set:html={gerarDot({ ...d, formato: f.id }, { ...parado, semRosto: true, recortado: true })}
+              />
+            ))
+          }
+        </div>
+        <p id="nome-formato" class="text-center text-xs text-tinta-2" aria-live="polite">Fantasma</p>
+      </section>
+
+      <div class="vidro mt-3 flex w-full max-w-[640px] items-center gap-1.5 rounded-[24px] p-1.5 lateral:fixed lateral:top-1/2 lateral:right-4 lateral:mt-0 lateral:w-auto lateral:-translate-y-1/2 lateral:flex-col">
+        <button
+          id="botao-cor"
+          type="button"
+          aria-expanded="false"
+          aria-controls="leque"
+          aria-label="Cor: Tangerina"
+          class:list={["aperta relative size-12 shrink-0 rounded-full p-[3px] hover:scale-105", arcoIris]}
+        >
+          <span class="block size-full rounded-full border-[3px] border-superficie bg-(--cor-dot) transition-colors duration-300"></span>
+        </button>
+        <button
+          id="botao-olho"
+          type="button"
+          aria-expanded="false"
+          aria-controls="leque"
+          aria-label="Cor dos olhos: Automático"
+          class="aperta grid size-12 shrink-0 place-items-center rounded-full bg-(--cor-dot) ring-[3px] ring-superficie transition-colors duration-300 hover:scale-105"
+        >
+          <svg viewBox="0 0 24 24" class="size-7" aria-hidden="true">
+            <g fill="var(--cor-olho, #1e1b18)" stroke="rgb(0 0 0 / .18)" stroke-width=".6"><ellipse cx="8.4" cy="12" rx="3.1" ry="6.2" /><ellipse cx="15.6" cy="12" rx="3.1" ry="6.2" /></g>
+          </svg>
+        </button>
+        <div class="relative">
+          <button
+            id="abrir-rosto"
+            type="button"
+            aria-expanded="false"
+            aria-controls="rosto"
+            aria-label="Ajustar olhos"
+            class="aperta grid size-12 shrink-0 place-items-center rounded-full bg-trilho/70 hover:scale-105"
+          >
+            <svg viewBox="0 0 24 24" class="size-6" aria-hidden="true">
+              <path d="M2.5 12h4M17.5 12h4M4.5 10l-2 2 2 2M19.5 10l2 2-2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              <ellipse cx="9.3" cy="12" rx="1.9" ry="4" fill="currentColor" /><ellipse cx="14.7" cy="12" rx="1.9" ry="4" fill="currentColor" />
+            </svg>
+          </button>
+          <div
+            id="rosto"
+            role="dialog"
+            aria-label="Olhos"
+            hidden
+            class="vidro absolute bottom-full left-0 z-30 mb-3 w-64 rounded-3xl p-4 lateral:top-0 lateral:right-full lateral:bottom-auto lateral:left-auto lateral:mr-3 lateral:mb-0"
+          >
+            <label class="block text-sm font-semibold" for="vao-olho">Distância entre os olhos</label>
+            <input id="vao-olho" type="range" min="-14" max="18" step="1" value="0" class="mt-2 h-11 w-full accent-(--cor-dot)" />
+            <label class="mt-2 block text-sm font-semibold" for="largura-olho">Largura dos olhos</label>
+            <input id="largura-olho" type="range" min="0.6" max="1.8" step="0.05" value="1" class="mt-2 h-11 w-full accent-(--cor-dot)" />
+            <p class="mt-1 text-xs text-tinta-2">Pra mudar a posição, arraste o rosto do dot.</p>
+            <div class="mt-3 flex gap-2">
+              <button id="centralizar" type="button" class="aperta h-11 flex-1 rounded-full text-sm font-semibold ring-1 ring-borda hover:bg-superficie/70">Centralizar</button>
+              <button id="rosto-padrao" type="button" class="aperta h-11 flex-1 rounded-full bg-tinta text-sm font-semibold text-papel">Padrão</button>
+            </div>
+          </div>
+        </div>
+        <div id="estados" role="radiogroup" aria-label="Estado" class="flex min-w-0 flex-1 gap-0.5 overflow-x-auto rounded-[19px] bg-trilho/60 p-1 [scrollbar-width:none] lateral:flex-col lateral:overflow-visible">
+          {
+            ESTADOS.map((e) => (
+              <button
+                type="button"
+                role="radio"
+                data-estado={e.id}
+                title={e.dica}
+                aria-checked={e.id === "ocioso" ? "true" : "false"}
+                class="aperta flex h-14 min-w-[64px] flex-1 flex-col items-center justify-center rounded-[15px] text-xs lateral:h-[54px] lateral:w-[76px] lateral:flex-none text-tinta-2 hover:text-tinta aria-checked:bg-superficie aria-checked:font-semibold aria-checked:text-tinta aria-checked:shadow-flutua"
+              >
+                <span data-mini class="size-9 [&>svg]:size-full" set:html={gerarDot(d, { ...parado, estado: e.id, recortado: true })} />
+                {e.nome}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-wrap justify-center gap-2">
+        <button id="surpresa" type="button" class="aperta group flex h-11 items-center gap-2 rounded-full bg-tinta px-4.5 text-sm font-semibold text-papel">
+          <span id="dado" class="transition-transform duration-500 ease-mola group-hover:rotate-[24deg]"><Icone nome="dado" /></span> Me surpreenda
+        </button>
+        <button id="abrir-codigo" type="button" class="vidro aperta flex h-11 items-center gap-2 rounded-full px-4.5 text-sm font-semibold">
+          <Icone nome="codigo" /> Usar no projeto
+        </button>
+      </div>
+
+      <aside
+        id="time"
+        aria-labelledby="titulo-time"
+        class="vidro mt-6 flex items-center gap-1 rounded-[22px] p-2 lateral:fixed lateral:top-1/2 lateral:left-4 lateral:mt-0 lateral:-translate-y-1/2 lateral:flex-col"
+      >
+        <h2 id="titulo-time" class="px-1 text-xs font-semibold text-tinta-2">Time</h2>
+        <ul id="lista-time" class="flex gap-1 overflow-x-auto p-1.5 empty:hidden lateral:max-h-[60dvh] lateral:flex-col lateral:overflow-x-visible lateral:overflow-y-auto"></ul>
+        <button
+          id="salvar"
+          type="button"
+          aria-label="Salvar este dot no time"
+          title="Salvar no time"
+          class="aperta relative grid size-12 shrink-0 place-items-center rounded-2xl border-2 border-dashed border-tinta/20 hover:border-tinta/40"
+        >
+          <span id="previa-salvar" class="size-8 opacity-50 [&>svg]:size-full" set:html={icone}></span>
+          <span class="absolute -right-1.5 -bottom-1.5 grid size-5 place-items-center rounded-full bg-tinta text-papel"><Icone nome="mais" class="size-3" /></span>
+        </button>
+      </aside>
+    </main>
+
+    <div id="leque" class="leque fixed z-40 size-0" role="dialog" aria-label="Cor do dot" hidden>
+      <p id="nome-cor" class="vidro pointer-events-none absolute -translate-1/2 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap opacity-0 transition-opacity [.leque[data-aberto]_&]:opacity-100" aria-hidden="true">Tangerina</p>
+      <div role="radiogroup" aria-label="Cores">
+        <button
+          type="button"
+          role="radio"
+          aria-label="Automático"
+          data-cor="auto"
+          hidden
+          class="lamina absolute bottom-0 -left-4 h-[150px] w-8 rounded-[10px] bg-[linear-gradient(90deg,#1e1b18_50%,#fff6ea_50%)] ring-1 ring-black/10 aria-checked:ring-[3px] aria-checked:ring-superficie"
+        ></button>
+        {
+          AMOSTRAS.map((a, i) => (
+            <button
+              type="button"
+              role="radio"
+              aria-label={a.nome}
+              data-cor={a.hex}
+              class="lamina absolute bottom-0 -left-4 h-[150px] w-8 rounded-[10px] ring-1 ring-black/10 shadow-[0_6px_14px_-8px_rgb(0_0_0/.5)] aria-checked:ring-[3px] aria-checked:ring-superficie"
+              style={`background:${a.hex};--i:${i};--atraso:${i * 16}ms`}
+            >
+              <span class="absolute bottom-2.5 left-1/2 size-2.5 -translate-x-1/2 rounded-full bg-white/80 ring-1 ring-black/10" />
+            </button>
+          ))
+        }
+        <label
+          class:list={["lamina absolute bottom-0 -left-4 h-[150px] w-8 cursor-pointer rounded-[10px] ring-1 ring-black/10 focus-within:outline-[2.5px] focus-within:outline-offset-3 focus-within:outline-tinta", arcoIris]}
+          style={`--i:${AMOSTRAS.length};--atraso:${AMOSTRAS.length * 16}ms`}
+          title="Outra cor"
+        >
+          <input id="cor-livre" type="color" class="absolute inset-0 size-full cursor-pointer opacity-0" aria-label="Escolher outra cor" />
+        </label>
+      </div>
+      <span class="vidro pointer-events-none absolute -top-4 -left-4 size-8 scale-0 rounded-full transition duration-300 ease-mola [.leque[data-aberto]_&]:scale-100" aria-hidden="true"></span>
+    </div>
+
+
+    <dialog id="dialogo-codigo" aria-labelledby="titulo-codigo" class="m-auto w-[min(640px,calc(100vw-24px))] rounded-[28px] bg-superficie p-0 text-tinta backdrop:bg-black/40">
+      <div class="p-5">
+        <div class="flex items-start justify-between gap-3">
+          <h2 id="titulo-codigo" class="text-lg font-semibold">Usar no seu projeto</h2>
+          <button type="button" data-fechar class="aperta -mt-2 -mr-2 grid size-11 place-items-center rounded-full hover:bg-trilho" aria-label="Fechar"><Icone nome="fechar" /></button>
+        </div>
+        <p class="mt-1 text-sm text-tinta-2">
+          Um SVG só com os 8 estados, animado em CSS, sem JavaScript. Cole no HTML e troque o estado pelo atributo <code class="rounded bg-trilho px-1">data-estado</code>.
+        </p>
+        <pre class="mt-4 overflow-x-auto rounded-2xl bg-trilho p-3 text-[13px] leading-relaxed"><code id="exemplo-uso"></code></pre>
+        <label for="codigo-svg" class="mt-4 block text-sm font-semibold">SVG</label>
+        <textarea id="codigo-svg" readonly rows="6" class="mt-1.5 w-full resize-y rounded-2xl bg-trilho p-3 font-mono text-xs break-all"></textarea>
+        <div class="mt-4 flex flex-wrap justify-end gap-2">
+          <button type="button" data-acao="baixar-unico" class="aperta h-11 rounded-full px-5 text-sm font-semibold ring-1 ring-borda hover:bg-trilho">Baixar .svg</button>
+          <button type="button" data-acao="copiar-unico" class="aperta h-11 rounded-full bg-tinta px-5 text-sm font-semibold text-papel">Copiar código</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="avisos" aria-live="polite" class="pointer-events-none fixed inset-x-0 bottom-5 z-50 flex flex-col items-center gap-2 px-4"></div>
+
+    <script>
+      import "../scripts/app";
+    </script>
+  </body>
+</html>

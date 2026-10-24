@@ -1,0 +1,112 @@
+---
+import Icone from "./Icone.astro";
+import Contribuicoes from "./Contribuicoes.astro";
+import MenuExportar from "./MenuExportar.astro";
+import { PERFIS } from "../lib/padrao";
+
+// Ícones soltos dentro de uma barra só: menos peso que uma fila de botões com texto.
+const ferramenta = "aperta grid size-11 place-items-center rounded-2xl hover:bg-superficie/80 aria-expanded:bg-superficie md:size-10";
+const perfis = [
+  { url: PERFIS.github.url, foto: "/vitor-github.jpg", rede: "github", titulo: PERFIS.nome, linha: `github.com/${PERFIS.github.usuario}`, selo: "bg-tinta text-papel" },
+  { url: PERFIS.linkedin.url, foto: "/vitor-linkedin.jpg", rede: "linkedin", titulo: "LinkedIn", linha: `in/${PERFIS.linkedin.usuario}`, selo: "bg-[#0a66c2] text-white" },
+] as const;
+---
+
+<header class="relative z-30 flex items-center justify-between gap-2 px-3 pt-3 sm:px-5 sm:pt-4">
+  <nav aria-label="Autor" class="vidro flex items-center gap-1 rounded-[20px] p-1">
+    {
+      perfis.map((p) => (
+        <div class:list={["relative", p.rede === "github" && "group/gh"]}>
+        <a
+          href={p.url}
+          target="_blank"
+          rel="noopener"
+          aria-label={`${p.rede === "github" ? "GitHub" : "LinkedIn"} de ${PERFIS.nome} (abre em outra aba)`}
+          class="aperta flex h-11 min-w-11 items-center justify-center gap-2 rounded-2xl p-1 hover:bg-superficie/80 md:h-10 md:min-w-10 xl:pr-3"
+        >
+          <span class="relative">
+            <img src={p.foto} alt="" width="32" height="32" class="size-8 rounded-xl object-cover" />
+            <span class={`absolute -right-1 -bottom-1 grid size-4 place-items-center rounded-md ring-2 ring-superficie ${p.selo}`}>
+              <Icone nome={p.rede} class="size-2.5" />
+            </span>
+          </span>
+          <span class="hidden leading-tight xl:block">
+            <span class="block text-[13px] font-semibold">{p.titulo}</span>
+            <span class="block text-[11px] text-tinta-2">{p.linha}</span>
+          </span>
+        </a>
+        {p.rede === "github" && <Contribuicoes />}
+        </div>
+      ))
+    }
+  </nav>
+
+  <div class="vidro flex items-center gap-1 rounded-[20px] p-1">
+    <button id="compartilhar" type="button" class={ferramenta} aria-label="Copiar link deste dot" title="Copiar link deste dot">
+      <Icone nome="compartilhar" />
+    </button>
+
+    <div class="relative">
+      <button id="abrir-ajustes" type="button" class={ferramenta} aria-expanded="false" aria-controls="ajustes" aria-label="Ajustes" title="Ajustes">
+        <Icone nome="ajustes" />
+      </button>
+      <div
+        id="ajustes"
+        role="dialog"
+        aria-label="Ajustes"
+        hidden
+        class="vidro absolute top-13 right-0 w-[min(280px,calc(100vw-32px))] rounded-3xl p-3.5"
+      >
+        <p class="mb-2 text-sm font-semibold">Tema</p>
+        <div role="radiogroup" aria-label="Tema" data-grupo="tema" class="mb-4 grid grid-cols-2 gap-1 rounded-2xl bg-trilho/70 p-1">
+          <button type="button" role="radio" data-valor="claro" class="h-9 rounded-xl text-sm font-medium aria-checked:bg-tinta aria-checked:text-papel">Claro</button>
+          <button type="button" role="radio" data-valor="escuro" class="h-9 rounded-xl text-sm font-medium aria-checked:bg-tinta aria-checked:text-papel">Escuro</button>
+        </div>
+        <p class="mb-2 text-sm font-semibold">Velocidade</p>
+        <div role="radiogroup" aria-label="Velocidade" data-grupo="velocidade" class="mb-3 grid grid-cols-3 gap-1 rounded-2xl bg-trilho/70 p-1">
+          {["0.5", "1", "1.5"].map((v) => (
+            <button type="button" role="radio" data-valor={v} class="h-10 rounded-xl text-sm font-medium tabular-nums aria-checked:bg-tinta aria-checked:text-papel">
+              {v.replace(".", ",")}×
+            </button>
+          ))}
+        </div>
+        {
+          [
+            ["seguir", "Olhos seguem o cursor"],
+            ["bochechas", "Bochechas"],
+            ["sombra", "Sombra no chão"],
+          ].map(([chave, texto]) => (
+            <button type="button" role="switch" data-chave={chave} class="group flex min-h-11 w-full items-center justify-between rounded-xl px-1 text-sm">
+              {texto}
+              <span class="flex h-6 w-10 items-center rounded-full bg-borda p-0.5 transition group-aria-checked:bg-tinta">
+                <span class="size-5 rounded-full bg-superficie shadow transition group-aria-checked:translate-x-4" />
+              </span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    <span class="mx-0.5 h-6 w-px bg-borda" aria-hidden="true"></span>
+
+    <div class="relative">
+      <!-- O botão de exportar leva a cor do dot: é a única cor forte da barra. -->
+      <button
+        id="abrir-exportar"
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded="false"
+        aria-controls="menu-exportar"
+        aria-label="Exportar"
+        class="aperta flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-2xl bg-(--cor-dot) px-3 text-sm font-semibold text-(--tinta-dot) transition-colors duration-300 md:h-10"
+      >
+        <Icone nome="baixar" />
+        <span class="hidden sm:inline">Exportar</span>
+        <Icone nome="seta" class="hidden size-4 sm:block" />
+      </button>
+      <div id="menu-exportar" role="menu" aria-label="Exportar" hidden class="vidro absolute top-13 right-0 max-h-[calc(100dvh-84px)] w-[min(288px,calc(100vw-24px))] overflow-y-auto rounded-3xl p-1.5">
+        <MenuExportar />
+      </div>
+    </div>
+  </div>
+</header>

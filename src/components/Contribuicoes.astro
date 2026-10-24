@@ -1,0 +1,49 @@
+---
+import { buscarContribuicoes } from "../lib/contribuicoes";
+import { PERFIS } from "../lib/padrao";
+
+const dados = await buscarContribuicoes(PERFIS.github.usuario);
+const cel = 10;
+const vao = 3;
+// Os verdes do GitHub, nos dois temas: o painel é um recorte do perfil dele, então fala a mesma língua.
+const claro = ["#e6e1d8", "#9be9a8", "#40c463", "#30a14e", "#216e39"];
+const escuro = ["#2c2824", "#0e4429", "#006d32", "#26a641", "#39d353"];
+const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+const periodo = dados
+  ? `${meses[Number(dados.semanas[0][0].data.slice(5, 7)) - 1]} a ${meses[Number(dados.semanas.at(-1)!.at(-1)!.data.slice(5, 7)) - 1]}`
+  : "";
+---
+
+{
+  dados && (
+    <div
+      class="vidro pointer-events-none absolute top-full left-0 mt-2 origin-top-left translate-y-1 scale-95 rounded-2xl p-3 opacity-0 transition duration-300 ease-mola group-hover/gh:translate-y-0 group-hover/gh:scale-100 group-hover/gh:opacity-100 group-focus-within/gh:translate-y-0 group-focus-within/gh:scale-100 group-focus-within/gh:opacity-100 pointer-coarse:hidden"
+      aria-hidden="true"
+    >
+      <p class="text-[13px] font-semibold">
+        {dados.total.toLocaleString("pt-BR")} contribuições no último ano
+      </p>
+      <svg
+        width={dados.semanas.length * (cel + vao) - vao}
+        height={7 * (cel + vao) - vao}
+        class="mt-2 block"
+        role="presentation"
+      >
+        {dados.semanas.map((semana, c) =>
+          semana.map((dia) => (
+            <rect
+              x={c * (cel + vao)}
+              y={new Date(`${dia.data}T12:00:00Z`).getUTCDay() * (cel + vao)}
+              width={cel}
+              height={cel}
+              rx="2.5"
+              class="origin-center scale-0 fill-(--claro) transition-transform duration-300 ease-mola [transform-box:fill-box] group-hover/gh:scale-100 group-focus-within/gh:scale-100 escuro:fill-(--escuro)"
+              style={`--claro:${claro[dia.nivel]};--escuro:${escuro[dia.nivel]};transition-delay:${c * 14}ms`}
+            />
+          )),
+        )}
+      </svg>
+      <p class="mt-1.5 text-[11px] text-tinta-2">Últimos 6 meses, {periodo} · dados do GitHub</p>
+    </div>
+  )
+}

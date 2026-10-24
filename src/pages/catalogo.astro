@@ -1,0 +1,70 @@
+---
+import "../styles/global.css";
+import { gerarDot } from "../lib/gerador";
+import { ESTADOS } from "../lib/estados";
+import { EXPRESSOES } from "../lib/expressoes";
+import { FORMATOS } from "../lib/formatos";
+import { PETALAS_FORA } from "../lib/paleta";
+
+const corDo = (i: number) => PETALAS_FORA[i % PETALAS_FORA.length].hex;
+const amostraDeEstados = ["fantasma", "robo", "gato"];
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Catálogo · LabDots</title>
+  </head>
+  <body class="p-4 sm:p-8">
+    <h1 class="text-2xl font-semibold">Catálogo</h1>
+    <p class="mt-1 text-tinta-2">Os {FORMATOS.length} formatos, as {EXPRESSOES.length} expressões e os {ESTADOS.length} estados.</p>
+    <a href="/" class="mt-2 inline-block underline">Voltar pro laboratório</a>
+
+    <section id="formatos" class="mt-8 p-2">
+      <h2 class="text-lg font-semibold">Formatos</h2>
+      <div class="mt-3 grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2">
+        {
+          FORMATOS.map((f, i) => (
+            <figure class="rounded-2xl bg-superficie p-2">
+              <div class="[&>svg]:size-full" set:html={gerarDot({ formato: f.id, expressao: "cristal", cor: corDo(i) }, { estado: "ocioso", estados: ["ocioso"], prefixo: `f${i}`, fase: i * 0.7 })} />
+              <figcaption class="text-center text-xs text-tinta-2">{f.nome}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="expressoes" class="mt-8 p-2">
+      <h2 class="text-lg font-semibold">Expressões</h2>
+      <div class="mt-3 grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2">
+        {
+          EXPRESSOES.map((e, i) => (
+            <figure class="rounded-2xl bg-superficie p-2">
+              <div class="[&>svg]:size-full" set:html={gerarDot({ formato: "seixo", expressao: e.id, cor: "#f08a24" }, { estado: "ocioso", estados: ["ocioso"], prefixo: `x${i}`, recortado: true, fase: i * 0.4 })} />
+              <figcaption class="text-center text-xs text-tinta-2">{e.nome}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="estados" class="mt-8 p-2">
+      <h2 class="text-lg font-semibold">Estados</h2>
+      <div class="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-8">
+        {
+          amostraDeEstados.map((id, l) =>
+            ESTADOS.map((e, c) => (
+              <figure class="rounded-2xl bg-superficie p-2">
+                <div class="[&>svg]:size-full" set:html={gerarDot({ formato: id, expressao: "cristal", cor: corDo(l * 3) }, { estado: e.id, estados: [e.id], prefixo: `c${l}x${c}` })} />
+                <figcaption class="text-center text-xs text-tinta-2">{e.nome}</figcaption>
+              </figure>
+            )),
+          )
+        }
+      </div>
+    </section>
+  </body>
+</html>
