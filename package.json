@@ -27,5 +27,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/vitorcgo/LabDots"
+  },
+  "engines": {
+    "node": ">=22.23.4"
   }
 }
